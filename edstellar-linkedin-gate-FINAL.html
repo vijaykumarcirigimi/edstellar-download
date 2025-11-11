@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edstellar - Download Courses Catalogue</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .popup-container {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.4s ease-out;
+            position: relative;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .popup-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .popup-header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .popup-header p {
+            color: #666;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .step {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            transition: all 0.3s;
+        }
+
+        .step.active {
+            background: #0077b5;
+            transform: scale(1.2);
+        }
+
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .linkedin-button {
+            background: #0077b5;
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: background 0.3s;
+            text-decoration: none;
+        }
+
+        .linkedin-button:hover {
+            background: #006399;
+        }
+
+        .linkedin-button.secondary {
+            background: white;
+            color: #0077b5;
+            border: 2px solid #0077b5;
+        }
+
+        .linkedin-button.secondary:hover {
+            background: #f3f6f8;
+        }
+
+        .linkedin-icon {
+            width: 24px;
+            height: 24px;
+        }
+
+        .download-button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .download-button:hover {
+            background: #218838;
+        }
+
+        .success-icon {
+            text-align: center;
+            font-size: 64px;
+            margin-bottom: 20px;
+            animation: scaleIn 0.5s ease-out;
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+            }
+            to {
+                transform: scale(1);
+            }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #0077b5;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #0077b5;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+
+        .info-box p {
+            color: #004085;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .info-box.warning {
+            background: #fff3cd;
+            border-left-color: #ffc107;
+        }
+
+        .info-box.warning p {
+            color: #856404;
+        }
+
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .company-preview {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .company-logo {
+            width: 60px;
+            height: 60px;
+            background: #0077b5;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .company-info h3 {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .company-info p {
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="popup-overlay">
+        <div class="popup-container">
+            <div class="step-indicator">
+                <div class="step active" id="step1"></div>
+                <div class="step" id="step2"></div>
+                <div class="step" id="step3"></div>
+                <div class="step" id="step4"></div>
+            </div>
+
+            <!-- Step 1: Initial Gate -->
+            <div class="content-section active" id="gate-section">
+                <div class="popup-header">
+                    <h1>📚 Edstellar Courses Catalogue</h1>
+                    <p>Get instant access to our comprehensive courses catalogue</p>
+                </div>
+                
+                <div class="info-box">
+                    <p><strong>Unlock Your Download:</strong> Connect with LinkedIn and follow us to get instant access to our latest courses catalogue with 100+ professional development programs.</p>
+                </div>
+
+                <button class="linkedin-button" id="linkedin-auth-btn">
+                    <svg class="linkedin-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                    </svg>
+                    Connect with LinkedIn
+                </button>
+            </div>
+
+            <!-- Step 2: Loading -->
+            <div class="content-section" id="loading-section">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Verifying your LinkedIn connection...</p>
+                </div>
+            </div>
+
+            <!-- Step 3: Follow Prompt -->
+            <div class="content-section" id="follow-section">
+                <div class="popup-header">
+                    <h1>👋 Almost There!</h1>
+                    <p>Follow us on LinkedIn to unlock your download</p>
+                </div>
+
+                <div class="company-preview">
+                    <div class="company-logo">E</div>
+                    <div class="company-info">
+                        <h3>Edstellar</h3>
+                        <p>Corporate Training & Development</p>
+                    </div>
+                </div>
+
+                <div class="info-box warning">
+                    <p><strong>Quick Step:</strong> Click the button below to visit our LinkedIn page, click the "Follow" button, then come back here to download your catalogue.</p>
+                </div>
+
+                <div class="button-group">
+                    <a href="https://www.linkedin.com/company/edstellarofficial/" 
+                       target="_blank" 
+                       class="linkedin-button">
+                        <svg class="linkedin-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                        </svg>
+                        Follow Edstellar on LinkedIn
+                    </a>
+                    
+                    <button class="linkedin-button secondary" id="confirm-follow-btn">
+                        ✓ I've Followed - Continue
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 4: Success & Download -->
+            <div class="content-section" id="success-section">
+                <div class="success-icon">✅</div>
+                <div class="popup-header">
+                    <h1>Thank You!</h1>
+                    <p>Welcome to the Edstellar community on LinkedIn!</p>
+                </div>
+                
+                <a href="https://cdn.prod.website-files.com/6482a3cf7db698c2a80cc5e6/686213645a8668118722a4f0_Edstellar%20Courses%20Catalogue.pdf" 
+                   class="download-button" 
+                   download
+                   target="_blank">
+                    📥 Download Courses Catalogue
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const CONFIG = {
+            clientId: '86il0n95qpbklq',
+            redirectUri: 'https://page.gensparksite.com/v1/base64_upload/77ad8a8e8321df10117ae87677ddc9c0',
+            scope: 'openid profile email',
+            state: Math.random().toString(36).substring(7),
+            companyUrl: 'https://www.linkedin.com/company/edstellarofficial/'
+        };
+
+        // Step management
+        function showStep(stepNumber) {
+            // Update step indicators
+            document.querySelectorAll('.step').forEach((step, index) => {
+                step.classList.toggle('active', index < stepNumber);
+            });
+
+            // Update content sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+
+            const sections = ['gate-section', 'loading-section', 'follow-section', 'success-section'];
+            document.getElementById(sections[stepNumber - 1]).classList.add('active');
+        }
+
+        // LinkedIn OAuth
+        document.getElementById('linkedin-auth-btn').addEventListener('click', function() {
+            const authUrl = `https://www.linkedin.com/oauth/v2/authorization?` +
+                `response_type=code&` +
+                `client_id=${CONFIG.clientId}&` +
+                `redirect_uri=${encodeURIComponent(CONFIG.redirectUri)}&` +
+                `state=${CONFIG.state}&` +
+                `scope=${encodeURIComponent(CONFIG.scope)}`;
+            
+            window.location.href = authUrl;
+        });
+
+        // Confirm follow button
+        document.getElementById('confirm-follow-btn').addEventListener('click', function() {
+            // Store that they confirmed following
+            localStorage.setItem('edstellar_followed', 'true');
+            showStep(4);
+        });
+
+        // Handle OAuth callback
+        function handleCallback() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
+            const state = urlParams.get('state');
+
+            if (code) {
+                // Show loading
+                showStep(2);
+                
+                // Simulate verification (in reality, you'd exchange the code for a token)
+                setTimeout(() => {
+                    // Check if they already followed
+                    const alreadyFollowed = localStorage.getItem('edstellar_followed');
+                    
+                    if (alreadyFollowed) {
+                        showStep(4); // Go directly to download
+                    } else {
+                        showStep(3); // Show follow prompt
+                    }
+                }, 1500);
+            }
+        }
+
+        // Initialize
+        window.addEventListener('DOMContentLoaded', function() {
+            handleCallback();
+        });
+    </script>
+</body>
+</html>
